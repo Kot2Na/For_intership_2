@@ -1,4 +1,9 @@
 #include <iostream>
+#include <fstream>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
 
 class device
 {
@@ -19,7 +24,7 @@ public:
 	{
 		i = 0;
 		this->name = new char[255];
-		strcpy_s(this->name, strlen(_name) + 1, _name);
+		strncpy(this->name, _name, strlen(_name) + 1);
 	}
 
 	void call_name()
@@ -32,7 +37,7 @@ public:
 		char *type;
 
 		type = new char[255];
-		strcpy_s(type, strlen(typeid(this).name()) + 1, typeid(this).name());
+		strncpy(type, typeid(this).name(), strlen(typeid(this).name() + 1));
 		return (type);
 	}
 
@@ -180,7 +185,7 @@ public:
 		char *type;
 
 		type = new char[255];
-		strcpy_s(type, strlen(typeid(*this).name()) + 1, typeid(*this).name());
+		strncpy(type, typeid(*this).name(), strlen(typeid(*this).name()) + 1);
 		return (type);
 	}
 
@@ -246,7 +251,7 @@ public:
 		char *type;
 
 		type = new char[255];
-		strcpy_s(type, strlen(typeid(*this).name()) + 1, typeid(*this).name());
+		strncpy(type, typeid(*this).name(), strlen(typeid(*this).name()) + 1);
 		return (type);
 	}
 
@@ -275,13 +280,14 @@ public:
 		char *type;
 
 		type = new char[255];
-		strcpy_s(type, strlen(typeid(*this).name()) + 1, typeid(*this).name());
+		strncpy(type, typeid(*this).name(), strlen(typeid(*this).name()) + 1);
 		return (type);
 	}
 
 	void action(t_data *data)
 	{
 		std::cout << "net is work" << std::endl;
+		sleep(1);
 		data->data = rand();
 		data->dev = data->mather->new_control();
 	}
@@ -293,9 +299,14 @@ public:
 
 class hdd : public device
 {
+	char *file_name;
+	std::ofstream fd;
 public:
-	hdd(const char *_name) : device(_name)
+	hdd(const char *_name, const char *_file_name) : device(_name)
 	{
+		this->file_name = new char[255];
+		strncpy(this->file_name, _file_name, strlen(_file_name) + 1);
+		fd.open(this->file_name);
 	}
 
 	char *what_type()
@@ -303,27 +314,38 @@ public:
 		char *type;
 
 		type = new char[255];
-		strcpy_s(type, strlen(typeid(*this).name()) + 1, typeid(*this).name());
+		strncpy(type, typeid(*this).name(), strlen(typeid(*this).name()) + 1);
 		return (type);
 	}
 
 	void action(t_data *data)
 	{
 		std::cout << "hdd is work" << std::endl;
+		if (fd.is_open())
+		{
+			fd << data->data << std::endl;
+		}
 		data->data = rand();
 		data->dev = data->mather->new_control();
 	}
 
 	~hdd()
 	{
+		delete[] file_name;
+		fd.close();
 	}
 };
 
 class keyboard : public device
 {
+	int fd;
+	int k;
 public:
 	keyboard(const char *_name) : device(_name)
 	{
+		fd = open("/dev/console", O_WRONLY);
+		std::cout << "keyboard " << fd << " work" << std::endl;
+		k = 0;
 	}
 
 	char *what_type()
@@ -331,19 +353,28 @@ public:
 		char *type;
 
 		type = new char[255];
-		strcpy_s(type, strlen(typeid(*this).name()) + 1, typeid(*this).name());
+		strncpy(type, typeid(*this).name(), strlen(typeid(*this).name()) + 1);
 		return (type);
 	}
 
 	void action(t_data *data)
 	{
-		std::cout << "keyboard is work" << std::endl;
+		if (fd == -1)
+			std::cout << "keyboard isn't work" << std::endl;
+		else
+			std::cout << "keyboard work " << k << std::endl;
+		if (k % 2 == 1)
+			ioctl(fd, 0x4B32, 0x0);
+		else
+			ioctl(fd, 0x4B32, 0x04);
 		data->data = rand();
 		data->dev = data->mather->new_control();
+		k++;
 	}
 
 	~keyboard()
 	{
+		close(fd);
 	}
 };
 
@@ -352,7 +383,7 @@ int main()
 	mather_plate main_dev("mather");
 	gpu_plate first("gpu");
 	net_plate second("net");
-	hdd third("hdd");
+	hdd third("hdd", "hdd_data");
 	keyboard fourth("keyboard");
 	
 	main_dev.registrate(&first);
