@@ -3,7 +3,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <stdio.h>
+#include <string.h>
 
 class device
 {
@@ -96,7 +96,7 @@ public:
 		}
 		this->i += 1;
 	}
-
+/*
 	void	list_print()
 	{
 		node *head;
@@ -123,7 +123,7 @@ public:
 			head = head->next;
 		}
 	}
-
+*/
 	device *find_gpu()
 	{
 		node *head;
@@ -136,6 +136,18 @@ public:
 			head = head->next;
 		}
 		return (this->start->cur);
+	}
+
+	void	list_print_count()
+	{
+		node *head;
+
+		head = this->start;
+		while (head)
+		{
+			std::cout << head->cur->name << " was called " << head->cur->i << " times" << std::endl;
+			head = head->next;
+		}
 	}
 
 	device *rand_device()
@@ -158,6 +170,7 @@ public:
 		return (head ? head->cur : NULL);
 	}
 
+
 	void	list_destroy(node *head = NULL)
 	{
 
@@ -173,11 +186,16 @@ public:
 
 class mather_plate : device 
 {
+	char *file_name;
+	std::ofstream fd;
 public:
 	list list_dev;
 
-	mather_plate(const char *_name) : device(_name)
+	mather_plate(const char *_name, const char *_file_name) : device(_name)
 	{
+		this->file_name = new char[255];
+		strncpy(this->file_name, _file_name, strlen(_file_name) + 1);
+		fd.open(this->file_name);
 	}
 
 	char *what_type()
@@ -204,6 +222,7 @@ public:
 		control = list_dev.find_gpu();
 		while (this->i < 100)
 		{
+			fd << "get control " << control->name << " data is : " << data.data << std::endl;
 			control->action(&data);
 			control = data.dev;
 			if (control)
@@ -211,13 +230,15 @@ public:
 			else
 				return ;
 		}
+		list_dev.list_print_count();
+		list_dev.list_destroy();
 	}
 
 	device *new_control()
 	{
 		return (list_dev.rand_device());
 	}
-
+/*
 	void call_device()
 	{
 		list_dev.list_print();
@@ -227,14 +248,11 @@ public:
 	{
 		list_dev.list_print_type();
 	}
-
-	void destr()
-	{
-		list_dev.list_destroy();
-	}
-
+*/
 	~mather_plate()
 	{
+		delete[] file_name;
+		fd.close();
 	}
 };
 
@@ -257,6 +275,7 @@ public:
 
 	void action(t_data *data)
 	{
+		this->i += 1; 
 		if (data)
 			std::cout << data->data << std::endl;
 		data->data = rand();
@@ -286,8 +305,8 @@ public:
 
 	void action(t_data *data)
 	{
-		std::cout << "net is work" << std::endl;
-		sleep(1);
+		this->i += 1; 
+		sleep(0);
 		data->data = rand();
 		data->dev = data->mather->new_control();
 	}
@@ -320,7 +339,7 @@ public:
 
 	void action(t_data *data)
 	{
-		std::cout << "hdd is work" << std::endl;
+		this->i += 1; 
 		if (fd.is_open())
 		{
 			fd << data->data << std::endl;
@@ -339,13 +358,10 @@ public:
 class keyboard : public device
 {
 	int fd;
-	int k;
 public:
 	keyboard(const char *_name) : device(_name)
 	{
-		fd = open("/dev/console", O_WRONLY);
-		std::cout << "keyboard " << fd << " work" << std::endl;
-		k = 0;
+		fd = open("/dev/console", O_NOCTTY);
 	}
 
 	char *what_type()
@@ -359,17 +375,16 @@ public:
 
 	void action(t_data *data)
 	{
-		if (fd == -1)
-			std::cout << "keyboard isn't work" << std::endl;
-		else
-			std::cout << "keyboard work " << k << std::endl;
-		if (k % 2 == 1)
-			ioctl(fd, 0x4B32, 0x0);
-		else
-			ioctl(fd, 0x4B32, 0x04);
+		this->i += 1; 
+		if (fd)
+		{
+			if (this->i % 2 == 1)
+				ioctl(0, 0x4B32, 0x0);
+			else
+				ioctl(0, 0x4B32, 0x04);
+		}
 		data->data = rand();
 		data->dev = data->mather->new_control();
-		k++;
 	}
 
 	~keyboard()
@@ -380,11 +395,13 @@ public:
 
 int main()
 {
-	mather_plate main_dev("mather");
+	mather_plate main_dev("mather", "mather_data");
 	gpu_plate first("gpu");
 	net_plate second("net");
 	hdd third("hdd", "hdd_data");
 	keyboard fourth("keyboard");
+
+	srand(101);
 	
 	main_dev.registrate(&first);
 	main_dev.registrate(&second);
@@ -392,7 +409,5 @@ int main()
 	main_dev.registrate(&fourth);
 
 	main_dev.action();
-
-	main_dev.destr();
 	return (0);
 }
