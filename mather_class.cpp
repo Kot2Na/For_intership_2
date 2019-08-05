@@ -21,24 +21,25 @@ void	mather_plate::registrate(device *item)
 	list_dev.list_add_end(item);
 }
 
-void	mather_plate::action()
+void	mather_plate::action(t_data *data)
 {
 	device	*control;
-	t_data	data;
 
-	data.data = rand();
-	data.mather = this;
+	data = new t_data;
+	data->data = rand();
+	data->mather = this;
 	control = list_dev.find_gpu();
 	while (this->i < 100)
 	{
-		fd << "get control " << control->name << " data is : " << data.data << std::endl;
-		control->action(&data);
-		control = data.dev;
+		fd << "get control " << control->name << " data is : " << data->data << std::endl;
+		control->action(data);
+		control = data->dev;
 		if (control)
 			this->i += 1;
 		else
 			return ;
 	}
+	delete data;
 	list_dev.list_print_count();
 	list_dev.list_destroy(NULL);
 }

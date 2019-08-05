@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <stdlib.h>
+#include <string.h>
 
 class device
 {
@@ -59,7 +61,7 @@ public:
 					mather_plate(const char *_name, const char *_file_name);
 	char			*what_type();
 	void			registrate(device *item);
-	void			action();
+	void			action(t_data *data);
 	device			*new_control();
 					~mather_plate();
 };

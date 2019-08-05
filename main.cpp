@@ -15,6 +15,6 @@ int main()
 	main_dev.registrate(&third);
 	main_dev.registrate(&fourth);
 
-	main_dev.action();
+	main_dev.action(NULL);
 	return (0);
 }

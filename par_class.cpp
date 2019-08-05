@@ -23,6 +23,7 @@ char	*device::what_type()
 
 void	device::action(t_data *data)
 {
+	data = NULL;
 }
 
 device	*device::new_control()

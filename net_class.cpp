@@ -15,7 +15,7 @@ char	*net_plate::what_type()
 void	net_plate::action(t_data *data)
 {
 	this->i += 1; 
-	sleep(0);
+	sleep(1);
 	data->data = rand();
 	data->dev = data->mather->new_control();
 }
