@@ -1,25 +1,4 @@
 #include "header.h"
-/*
-class node
-{
-	class device	*cur;
-	class node		*next;
-	friend class	list;
-};
-
-class list
-{
-	node *start;
-	int i;
-public:
-	list();
-	void	list_add_end(device *add);
-	device *find_gpu();
-	void	list_print_count();
-	device *rand_device();
-	void	list_destroy(node *head = NULL);
-};
-*/
 
 list::list()
 {
@@ -49,7 +28,7 @@ void	list::list_add_end(device *add)
 	this->i += 1;
 }
 
-device *list::find_gpu()
+device	*list::find_gpu()
 {
 	node *head;
 
@@ -75,7 +54,7 @@ void	list::list_print_count()
 	}
 }
 
-device *list::rand_device()
+device	*list::rand_device()
 {
 	node *head;
 	int num;

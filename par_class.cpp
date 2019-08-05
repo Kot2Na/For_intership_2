@@ -7,12 +7,12 @@ device::device(const char *_name)
 	strncpy(this->name, _name, strlen(_name) + 1);
 }
 
-void device::call_name()
+void	device::call_name()
 {
 	std::cout << this->name << std::endl;
 }
 
-char *device::what_type()
+char	*device::what_type()
 {
 	char *type;
 
@@ -21,11 +21,11 @@ char *device::what_type()
 	return (type);
 }
 
-void device::action(t_data *data)
+void	device::action(t_data *data)
 {
 }
 
-device *device::new_control()
+device	*device::new_control()
 {
 	return (NULL);
 }
